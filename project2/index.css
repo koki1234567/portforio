@@ -492,27 +492,6 @@
   bottom: 24px !important;
   right: 24px !important;
   z-index: 9999 !important;
-  background-color: #3b2314 !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-}
-
-#dify-chatbot-bubble-button:hover {
-  background-color: #5a3520 !important;
-}
-
-#dify-chatbot-bubble-button svg {
-  display: none !important;
-}
-
-#dify-chatbot-bubble-button::before {
-  content: '' !important;
-  display: block !important;
-  width: 32px !important;
-  height: 32px !important;
-  background-image: url('../4304_color.png') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  border-radius: 50% !important;
 }
 
 #dify-chatbot-bubble-window {
@@ -522,6 +501,7 @@
   z-index: 9999 !important;
 }
 
+/* チャットウィンドウ内ヘッダー背景色をコーヒーブラウンに */
 #dify-chatbot-bubble-window .bg-primary-600 {
   background-color: #3b2314 !important;
 }
@@ -533,4 +513,18 @@
 #dify-chatbot-bubble-window .text-primary-600,
 #dify-chatbot-bubble-window .text-primary-700 {
   color: #3b2314 !important;
+}
+
+/* 送信ボタンの色 */
+#dify-chatbot-bubble-window .bg-blue-700 {
+  background-color: #3b2314 !important;
+}
+
+/* アシスタントのアイコン画像を差し替え */
+#dify-chatbot-bubble-window img[alt="bot"] {
+  content: url('../4304_color.png') !important;
+}
+
+#dify-chatbot-bubble-window .bot-icon img {
+  content: url('../4304_color.png') !important;
 }

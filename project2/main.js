@@ -107,8 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  /* ── Dify chatbot fixed position fix ── */
-  const fixDifyPosition = () => {
+  /* ── Dify chatbot position & style fix ── */
+  const fixDifyStyle = () => {
     const btn = document.getElementById('dify-chatbot-bubble-button');
     const win = document.getElementById('dify-chatbot-bubble-window');
     if (btn) {
@@ -122,11 +122,33 @@ document.addEventListener('DOMContentLoaded', () => {
       win.style.setProperty('bottom', '90px', 'important');
       win.style.setProperty('right', '24px', 'important');
       win.style.setProperty('z-index', '9999', 'important');
+
+      /* ヘッダー背景色をコーヒーブラウンに */
+      const headers = win.querySelectorAll('[class*="bg-primary"]');
+      headers.forEach(el => {
+        el.style.setProperty('background-color', '#3b2314', 'important');
+      });
+
+      /* アシスタントアイコンを差し替え */
+      const botImgs = win.querySelectorAll('img');
+      botImgs.forEach(img => {
+        if (img.src && (img.src.includes('bot') || img.alt === 'bot' || img.closest('[class*="bot"]'))) {
+          img.src = '../4304_color.png';
+        }
+      });
     }
-    if (!btn || !win) {
-      setTimeout(fixDifyPosition, 300);
+    if (!btn) {
+      setTimeout(fixDifyStyle, 300);
     }
   };
-  setTimeout(fixDifyPosition, 1000);
+  setTimeout(fixDifyStyle, 1000);
+
+  /* チャットを開いたときにも再適用 */
+  const btn = document.getElementById('dify-chatbot-bubble-button');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      setTimeout(fixDifyStyle, 500);
+    });
+  }
 
 });
