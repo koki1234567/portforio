@@ -577,3 +577,18 @@
   }
 }
 
+/* ── Dify chatbot fixed override ── */
+#dify-chatbot-bubble-button {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 9999 !important;
+}
+
+#dify-chatbot-bubble-window {
+  position: fixed !important;
+  bottom: 90px !important;
+  right: 24px !important;
+  z-index: 9999 !important;
+}
+
