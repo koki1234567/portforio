@@ -107,12 +107,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  const chatbotToggle = document.getElementById('chatbot-toggle');
-  const chatbotWrapper = document.getElementById('chatbot-wrapper');
-  if (chatbotToggle && chatbotWrapper) {
-    chatbotToggle.addEventListener('click', () => {
-      chatbotWrapper.classList.toggle('open');
-    });
-  }
-
 });
