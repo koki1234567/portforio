@@ -270,23 +270,30 @@ function initPageTransition() {
 
 /* ======================== COUNTER ANIMATION ======================== */
 function initCounters() {
+  const DURATION = 1800; // ms — fixed duration regardless of target value
+
   document.querySelectorAll('[data-count]').forEach(el => {
     const target = parseInt(el.dataset.count, 10);
+
     const obs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        let cur = 0;
-        const step = target / 60;
-        const tick = () => {
-          cur += step;
-          if (cur >= target) { el.textContent = target; return; }
-          el.textContent = Math.floor(cur);
-          requestAnimationFrame(tick);
+
+        let startTime = null;
+        const tick = (ts) => {
+          if (!startTime) startTime = ts;
+          const elapsed = ts - startTime;
+          const progress = Math.min(elapsed / DURATION, 1);
+          // ease-out cubic so the number slows down as it reaches the target
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target);
+          if (progress < 1) requestAnimationFrame(tick);
         };
-        tick();
+        requestAnimationFrame(tick);
         obs.unobserve(el);
       });
-    }, { threshold: 0.5 });
+    }, { threshold: 0.3 });
+
     obs.observe(el);
   });
 }
