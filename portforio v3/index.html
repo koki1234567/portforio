@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHO PORTFOLIO</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <a href="#" class="header__logo">
+        <span class="logo-bracket">&lt;/&gt;</span>
+        <span class="logo-text">SHO PORTFOLIO</span>
+      </a>
+      <nav class="header__nav" id="headerNav">
+        <ul class="nav-list">
+          <li><a href="#about" class="nav-link">ABOUT</a></li>
+          <li><a href="#works" class="nav-link">WORKS</a></li>
+          <li><a href="#service" class="nav-link">SERVICE</a></li>
+          <li><a href="#contact" class="nav-link">CONTACT</a></li>
+        </ul>
+      </nav>
+      <button class="header__menu-btn" id="menuBtn" aria-label="メニュー">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero" id="hero">
+    <div class="hero__bg-dots"></div>
+    <div class="hero__inner">
+      <div class="hero__content">
+        <p class="hero__scroll-text">SCROLL</p>
+        <h1 class="hero__title js-fade-up">
+          コードで、<br />
+          ワクワクを<span class="hero__title-accent">カタチ</span>にする。
+        </h1>
+        <p class="hero__desc js-fade-up" data-delay="100">
+          ユーザーの心を動かすWebサイトをつくるために、<br />
+          デザインし、コーディングし、追験しません。<br />
+          つくることが好きだ、だから、もっとよくできるを繰り返す、<br />
+          そんなWeb制作者を目指しています。
+        </p>
+        <div class="hero__btns js-fade-up" data-delay="200">
+          <a href="#works" class="btn btn--primary">VIEW WORKS</a>
+          <a href="#about" class="btn btn--outline">ABOUT ME <span class="btn__arrow">→</span></a>
+        </div>
+      </div>
+
+      <div class="hero__visual js-fade-right">
+        <!-- Decorative shapes -->
+        <div class="hero__blob hero__blob--1"></div>
+        <div class="hero__blob hero__blob--2"></div>
+        <!-- Paper plane -->
+        <div class="hero__plane">
+          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M54 6L27 33M54 6L36 54L27 33M54 6L6 22L27 33" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <!-- Code editor mockup -->
+        <div class="code-editor">
+          <div class="code-editor__bar">
+            <span class="dot dot--red"></span>
+            <span class="dot dot--yellow"></span>
+            <span class="dot dot--green"></span>
+          </div>
+          <div class="code-editor__body">
+            <div class="code-line"><span class="code-kw">function</span> <span class="code-fn">create</span><span class="code-p">()</span> <span class="code-p">{</span></div>
+            <div class="code-line code-indent">idea = <span class="code-str">"ワクワク"</span>;</div>
+            <div class="code-line code-indent">design = <span class="code-acc">"カタチ"</span>;</div>
+            <div class="code-line code-indent"></div>
+            <div class="code-line code-indent"><span class="code-kw">return</span> <span class="code-fn">impact</span><span class="code-p">(</span>idea, design<span class="code-p">)</span>;</div>
+            <div class="code-line"><span class="code-p">}</span></div>
+            <div class="code-cursor"></div>
+          </div>
+        </div>
+        <!-- Bracket badge -->
+        <div class="hero__badge hero__badge--curly">{ }</div>
+        <div class="hero__badge hero__badge--angle">&lt;/&gt;</div>
+        <!-- Dots decoration -->
+        <div class="hero__dot-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ABOUT ========== -->
+  <section class="about section" id="about">
+    <div class="section__number">01</div>
+    <div class="about__inner inner">
+      <div class="about__head js-fade-up">
+        <p class="section__label">ABOUT <span class="section__label-ja">わたしについて</span></p>
+        <div class="section__title-line"></div>
+      </div>
+
+      <div class="about__body">
+        <div class="about__left js-fade-up">
+          <h2 class="about__title">
+            つくることが、<br />好きで得意です。
+          </h2>
+          <p class="about__text">
+            大学では情報科学を専攻し、プログラミングやWeb制作を中心に学んでいます。<br />
+            「人の役に立つものをつくりたい」という想いから、<br />
+            デザインからコーディング・アニメーションまで一貫して手掛けます。<br />
+            コード品質を大切にしながら、細部の仕上がまで<br />
+            "胸に使ってもらえるWeb制作者"をつくることを目指しています。
+          </p>
+          <a href="#" class="btn btn--dark btn--sm">MORE ABOUT</a>
+        </div>
+
+        <div class="about__right js-fade-left">
+          <div class="about__cards">
+            <div class="about__card js-stagger">
+              <div class="about__card-icon">
+                <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#6366f1" stroke-width="1.5"/><path d="M13 20c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/><path d="M20 27v-3M16 25l1.5-1.5M24 25l-1.5-1.5" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <h3 class="about__card-title">探究心</h3>
+              <p class="about__card-text">新しい技術や手法を<br />貪欲に学び続けます</p>
+            </div>
+            <div class="about__card js-stagger">
+              <div class="about__card-icon">
+                <svg viewBox="0 0 40 40" fill="none"><rect x="6" y="10" width="28" height="20" rx="3" stroke="#6366f1" stroke-width="1.5"/><path d="M13 20h14M13 15h8M13 25h5" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <h3 class="about__card-title">論理的思考</h3>
+              <p class="about__card-text">問題を整理し、<br />最適な解決策を考えます</p>
+            </div>
+            <div class="about__card js-stagger">
+              <div class="about__card-icon">
+                <svg viewBox="0 0 40 40" fill="none"><path d="M20 8v24M8 20h24" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="20" r="5" stroke="#6366f1" stroke-width="1.5"/></svg>
+              </div>
+              <h3 class="about__card-title">継続力</h3>
+              <p class="about__card-text">目標を定め、<br />コツコツ取り組みます</p>
+            </div>
+            <div class="about__card js-stagger">
+              <div class="about__card-icon">
+                <svg viewBox="0 0 40 40" fill="none"><circle cx="14" cy="16" r="5" stroke="#6366f1" stroke-width="1.5"/><circle cx="26" cy="16" r="5" stroke="#6366f1" stroke-width="1.5"/><path d="M6 32c0-4.418 3.582-8 8-8M26 24c4.418 0 8 3.582 8 8" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/><path d="M14 24c0 0 3 2 6 0" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <h3 class="about__card-title">チームワーク</h3>
+              <p class="about__card-text">仲間と連携し、<br />良いものを生みます</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decorative blobs -->
+      <div class="about__blob about__blob--green"></div>
+      <div class="about__blob about__blob--purple"></div>
+    </div>
+  </section>
+
+  <!-- ========== WORKS ========== -->
+  <section class="works section" id="works">
+    <div class="section__number">02</div>
+    <div class="works__inner inner">
+      <div class="works__head js-fade-up">
+        <div class="works__head-left">
+          <p class="section__label">WORKS <span class="section__label-ja">制作実績</span></p>
+          <div class="section__title-line"></div>
+        </div>
+        <a href="#" class="btn btn--outline btn--sm works__all-btn">VIEW ALL WORKS <span class="btn__arrow">→</span></a>
+      </div>
+
+      <div class="works__filter js-fade-up" data-delay="100">
+        <button class="filter-btn filter-btn--active" data-filter="all">ALL</button>
+        <button class="filter-btn" data-filter="web">WEB制作</button>
+        <button class="filter-btn" data-filter="lp">LP</button>
+        <button class="filter-btn" data-filter="banner">BANNER</button>
+        <button class="filter-btn" data-filter="app">APP</button>
+      </div>
+
+      <div class="works__slider js-fade-up" data-delay="200" id="worksSlider">
+        <div class="works__track" id="worksTrack">
+          <div class="work-card" data-category="web">
+            <div class="work-card__img work-card__img--nature">
+              <div class="work-card__overlay">
+                <span>→</span>
+              </div>
+            </div>
+            <h3 class="work-card__title">アウトドアメディアサイト</h3>
+            <p class="work-card__tags"><span>Web Site</span> <span>WordPress</span></p>
+          </div>
+          <div class="work-card" data-category="lp">
+            <div class="work-card__img work-card__img--online">
+              <div class="work-card__overlay">
+                <span>→</span>
+              </div>
+            </div>
+            <h3 class="work-card__title">オンライン授業サービスLP</h3>
+            <p class="work-card__tags"><span>LP</span> <span>Studio</span></p>
+          </div>
+          <div class="work-card" data-category="web">
+            <div class="work-card__img work-card__img--workout">
+              <div class="work-card__overlay">
+                <span>→</span>
+              </div>
+            </div>
+            <h3 class="work-card__title">フィットネスジムサイト</h3>
+            <p class="work-card__tags"><span>Web Site</span> <span>React / Framer</span></p>
+          </div>
+          <div class="work-card" data-category="lp">
+            <div class="work-card__img work-card__img--sweets">
+              <div class="work-card__overlay">
+                <span>→</span>
+              </div>
+            </div>
+            <h3 class="work-card__title">スイーツブランドLP</h3>
+            <p class="work-card__tags"><span>LP</span> <span>HTML / CSS / JS</span></p>
+          </div>
+          <div class="work-card" data-category="app">
+            <div class="work-card__img work-card__img--app">
+              <div class="work-card__overlay">
+                <span>→</span>
+              </div>
+            </div>
+            <h3 class="work-card__title">タスク管理アプリ</h3>
+            <p class="work-card__tags"><span>APP</span> <span>React / Node.js</span></p>
+          </div>
+        </div>
+        <div class="works__dots" id="worksDots">
+          <button class="works__dot works__dot--active" data-index="0"></button>
+          <button class="works__dot" data-index="1"></button>
+          <button class="works__dot" data-index="2"></button>
+        </div>
+      </div>
+    </div>
+    <div class="works__deco works__deco--circle"></div>
+  </section>
+
+  <!-- ========== SERVICE ========== -->
+  <section class="service section" id="service">
+    <div class="section__number">03</div>
+    <div class="service__inner inner">
+      <div class="service__head js-fade-up">
+        <p class="section__label">SERVICE <span class="section__label-ja">提供できること</span></p>
+        <div class="section__title-line"></div>
+      </div>
+
+      <div class="service__grid">
+        <div class="service__card js-stagger">
+          <div class="service__icon">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="12" width="44" height="32" rx="4" stroke="#6366f1" stroke-width="2"/>
+              <path d="M8 20h44" stroke="#6366f1" stroke-width="2"/>
+              <path d="M20 44v4M40 44v4M15 48h30" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+              <rect x="16" y="26" width="12" height="10" rx="2" fill="#e0e7ff"/>
+              <path d="M32 29h12M32 33h8" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="service__card-title">Webサイト制作</h3>
+          <p class="service__card-text">企画から公開まで一気通貫で制作します。デザインの着地とコーディングを精密に再現します。</p>
+          <div class="service__tags"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
+        </div>
+
+        <div class="service__card js-stagger">
+          <div class="service__icon">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 20l-8 10 8 10M40 20l8 10-8 10" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M33 16l-6 28" stroke="#4dd9ac" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="service__card-title">コーディング</h3>
+          <p class="service__card-text">デザイン品品な品質品なランディングページを高精度コーディングします。</p>
+          <div class="service__tags"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
+        </div>
+
+        <div class="service__card js-stagger">
+          <div class="service__icon">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="12" y="10" width="22" height="36" rx="3" stroke="#6366f1" stroke-width="2"/>
+              <rect x="36" y="18" width="16" height="24" rx="2" stroke="#6366f1" stroke-width="2"/>
+              <path d="M20 42h6M38 38h8" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 16h14" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="service__card-title">レスポンシブ対応</h3>
+          <p class="service__card-text">スマートフォンやタブレット、全デバイスで美しく表示されるサイトを制作します。</p>
+          <div class="service__tags"><span>Responsive</span><span>UI/UX</span></div>
+        </div>
+
+        <div class="service__card js-stagger">
+          <div class="service__icon">
+            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M30 14v4M30 42v4M14 30h4M42 30h4" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="30" cy="30" r="10" stroke="#6366f1" stroke-width="2"/>
+              <path d="M24 30c0-3.314 2.686-6 6-6" stroke="#4dd9ac" stroke-width="2" stroke-linecap="round"/>
+              <path d="M22 22l2.828 2.828M35.172 35.172L38 38M38 22l-2.828 2.828" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="service__card-title">保守・運営サポート</h3>
+          <p class="service__card-text">サイト公開後の更新作業や問題サポートも対応します。長期的な運営をサポートします。</p>
+          <div class="service__tags"><span>Sakura</span><span>Support</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative dots -->
+    <div class="service__deco service__deco--dots"></div>
+    <div class="service__deco service__deco--diamond"></div>
+  </section>
+
+  <!-- ========== CONTACT ========== -->
+  <section class="contact section" id="contact">
+    <div class="section__number">04</div>
+    <div class="contact__inner inner">
+      <div class="contact__left js-fade-up">
+        <p class="section__label">CONTACT <span class="section__label-ja">お問い合わせ</span></p>
+        <div class="section__title-line"></div>
+        <h2 class="contact__title">
+          ご相談・ご依頼は<br />お気軽にご連絡ください！
+        </h2>
+        <p class="contact__text">
+          Web制作のご依頼、ご相談、質問などは<br />
+          こちらのフォームにてお待ちしております。<br />
+          3営業日以内にご連絡いたします。
+        </p>
+        <div class="contact__socials">
+          <a href="#" class="social-link" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </a>
+          <a href="#" class="social-link" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="mailto:example@gmail.com" class="social-link" aria-label="メール">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 6 10-6"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="contact__right js-fade-left">
+        <form class="contact-form" id="contactForm">
+          <div class="form-group">
+            <label class="form-label" for="name">氏名</label>
+            <input type="text" id="name" name="name" class="form-input" placeholder="山田 太郎" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">メールアドレス</label>
+            <input type="email" id="email" name="email" class="form-input" placeholder="example@gmail.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">お問い合わせ内容</label>
+            <textarea id="message" name="message" class="form-textarea" placeholder="ご相談内容をご記入ください。" required></textarea>
+          </div>
+          <button type="submit" class="btn btn--submit">
+            送信する <span class="btn__arrow">→</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <p class="footer__copy">© 2024 SHO PORTFOLIO. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="ページトップへ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+
+  <!-- Mobile Nav Overlay -->
+  <div class="mobile-nav" id="mobileNav">
+    <ul class="mobile-nav__list">
+      <li><a href="#about" class="mobile-nav__link">ABOUT</a></li>
+      <li><a href="#works" class="mobile-nav__link">WORKS</a></li>
+      <li><a href="#service" class="mobile-nav__link">SERVICE</a></li>
+      <li><a href="#contact" class="mobile-nav__link">CONTACT</a></li>
+    </ul>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
