@@ -1,519 +1,1003 @@
-'use strict';
+/**
+ * SHO PORTFOLIO – main.js
+ * 共通JavaScriptインタラクション
+ *
+ * 機能一覧:
+ *  1. ヘッダー スクロール挙動
+ *  2. ハンバーガーメニュー（全画面ナビ）
+ *  3. アクティブナビリンク
+ *  4. Intersection Observer スクロールアニメーション
+ *  5. パララックス効果
+ *  6. カウンターアニメーション
+ *  7. スキルバーアニメーション（skills.html用）
+ *  8. ホバーマイクロインタラクション
+ *  9. WORKSページ タブフィルター
+ * 10. スムーズスクロール
+ */
 
-/* =============================================
-   LOADING SCREEN
-============================================= */
-function initLoader() {
-  const loader = document.createElement('div');
-  loader.className = 'loader';
-  loader.innerHTML = `
-    <div class="loader__logo">&lt;/&gt; SHO PORTFOLIO</div>
-    <div class="loader__bar-wrap">
-      <div class="loader__bar" id="loaderBar"></div>
-    </div>
-  `;
-  document.body.prepend(loader);
+(function () {
+  'use strict';
 
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      loader.classList.add('is-hidden');
-      document.body.style.overflow = '';
-    }, 1800);
-  });
+  /* =====================================================
+     Utility
+  ===================================================== */
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-  document.body.style.overflow = 'hidden';
-}
+  /** easeOutCubic */
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  /** easeInOutCubic */
+  function easeInOut(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
-/* =============================================
-   HEADER SCROLL EFFECT
-============================================= */
-function initHeader() {
-  const header = document.getElementById('header');
-  const backToTop = document.getElementById('backToTop');
+  /* =====================================================
+     1. Header – スクロール時にスタイル変更
+  ===================================================== */
+  const header = $('#header');
+  let lastScrollY = 0;
+  let ticking = false;
+
+  function onHeaderScroll() {
+    const scrollY = window.scrollY;
+    if (scrollY > 40) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+    lastScrollY = scrollY;
+    ticking = false;
+  }
 
   window.addEventListener('scroll', () => {
-    const scrollY = window.scrollY;
-
-    if (scrollY > 80) {
-      header.classList.add('is-scrolled');
-    } else {
-      header.classList.remove('is-scrolled');
-    }
-
-    if (scrollY > 400) {
-      backToTop.classList.add('is-visible');
-    } else {
-      backToTop.classList.remove('is-visible');
+    if (!ticking) {
+      requestAnimationFrame(onHeaderScroll);
+      ticking = true;
     }
   }, { passive: true });
 
-  backToTop.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  /* =====================================================
+     2. ハンバーガーメニュー / 全画面ナビゲーション
+  ===================================================== */
+  const menuToggle = $('#menuToggle');
+  const fullscreenNav = $('#fullscreenNav');
+  let isMenuOpen = false;
+
+  function openMenu() {
+    isMenuOpen = true;
+    menuToggle.classList.add('is-open');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    fullscreenNav.classList.add('is-open');
+    fullscreenNav.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // メニューアイテムをリセット（再アニメーション用）
+    $$('.fn-item', fullscreenNav).forEach(item => {
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(30px)';
+    });
+  }
+
+  function closeMenu() {
+    isMenuOpen = false;
+    menuToggle.classList.remove('is-open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    fullscreenNav.classList.remove('is-open');
+    fullscreenNav.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  menuToggle.addEventListener('click', () => {
+    if (isMenuOpen) closeMenu();
+    else openMenu();
   });
-}
 
-/* =============================================
-   MOBILE NAV
-============================================= */
-function initMobileNav() {
-  const menuBtn = document.getElementById('menuBtn');
-  const mobileNav = document.getElementById('mobileNav');
-  const mobileLinks = mobileNav.querySelectorAll('.mobile-nav__link');
-
-  menuBtn.addEventListener('click', () => {
-    menuBtn.classList.toggle('is-open');
-    mobileNav.classList.toggle('is-open');
-    document.body.style.overflow = mobileNav.classList.contains('is-open') ? 'hidden' : '';
+  // ESCキーで閉じる
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isMenuOpen) closeMenu();
   });
 
-  mobileLinks.forEach(link => {
+  // メニューリンクをクリックしたら閉じる
+  $$('.fn-link', fullscreenNav).forEach(link => {
     link.addEventListener('click', () => {
-      menuBtn.classList.remove('is-open');
-      mobileNav.classList.remove('is-open');
-      document.body.style.overflow = '';
+      if (link.getAttribute('href').startsWith('#')) {
+        closeMenu();
+      }
     });
   });
-}
 
-/* =============================================
-   ACTIVE NAV HIGHLIGHT
-============================================= */
-function initActiveNav() {
-  const navLinks = document.querySelectorAll('.nav-link');
-  const sections = document.querySelectorAll('section[id]');
+  /* =====================================================
+     3. アクティブナビリンク
+  ===================================================== */
+  function setActiveNav() {
+    const path = window.location.pathname;
+    const page = path.split('/').pop() || 'index.html';
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute('id');
-        navLinks.forEach(link => {
-          link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
-        });
-      }
+    $$('.gnav-link, .fn-link').forEach(link => {
+      const href = link.getAttribute('href');
+      if (!href) return;
+      const isActive =
+        (page === '' || page === 'index.html') && (href === 'index.html' || href === '#top') ? true :
+        href.includes(page) && page !== '';
+
+      link.classList.toggle('active', isActive);
     });
-  }, { rootMargin: '-40% 0px -40% 0px' });
+  }
+  setActiveNav();
 
-  sections.forEach(section => observer.observe(section));
-}
+  /* =====================================================
+     4. Intersection Observer – スクロールアニメーション
+  ===================================================== */
+  const animateEls = $$('[data-animate]');
 
-/* =============================================
-   SCROLL ANIMATIONS (IntersectionObserver)
-============================================= */
-function initScrollAnimations() {
-  // Fade up / fade left / fade right
-  const fadeEls = document.querySelectorAll('.js-fade-up, .js-fade-right, .js-fade-left');
-
-  const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const delay = el.dataset.delay || 0;
-        setTimeout(() => {
-          el.classList.add('is-visible');
-        }, parseInt(delay));
-        fadeObserver.unobserve(el);
-      }
+  if (animateEls.length > 0) {
+    // delay属性をtransition-delayに適用
+    animateEls.forEach(el => {
+      const delay = el.dataset.delay || 0;
+      if (delay) el.style.transitionDelay = delay + 'ms';
     });
-  }, { rootMargin: '0px 0px -80px 0px' });
 
-  fadeEls.forEach(el => fadeObserver.observe(el));
-
-  // Stagger cards
-  const staggerGroups = document.querySelectorAll('.about__cards, .service__grid');
-
-  staggerGroups.forEach(group => {
-    const cards = group.querySelectorAll('.js-stagger');
-
-    const groupObserver = new IntersectionObserver((entries) => {
+    const scrollObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          cards.forEach((card, i) => {
-            setTimeout(() => {
-              card.classList.add('is-visible');
-            }, i * 120);
+          entry.target.classList.add('is-visible');
+
+          // 装飾ブロブは少し遅れて現れる（デコ要素）
+          const nearbyDecos = entry.target.closest('.section')
+            ? $$('.deco', entry.target.closest('.section'))
+            : [];
+          nearbyDecos.forEach((deco, i) => {
+            setTimeout(() => deco.classList.add('is-visible'), i * 150 + 200);
           });
-          groupObserver.unobserve(entry.target);
+
+          scrollObserver.unobserve(entry.target);
         }
       });
-    }, { rootMargin: '0px 0px -60px 0px' });
-
-    groupObserver.observe(group);
-  });
-}
-
-/* =============================================
-   SECTION TITLE LINE ANIMATION
-============================================= */
-function initSectionLines() {
-  const lines = document.querySelectorAll('.section__title-line');
-  const lineObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.width = '50px';
-        lineObserver.unobserve(entry.target);
-      }
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -60px 0px'
     });
-  }, { rootMargin: '0px 0px -60px 0px' });
 
-  lines.forEach(line => {
-    line.style.width = '0';
-    line.style.transition = 'width 0.6s ease 0.3s';
-    lineObserver.observe(line);
-  });
-}
-
-/* =============================================
-   WORKS: FILTER + SLIDER
-============================================= */
-function initWorks() {
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const workCards = document.querySelectorAll('.work-card');
-  const track = document.getElementById('worksTrack');
-  const dots = document.querySelectorAll('.works__dot');
-
-  let currentIndex = 0;
-  const visibleCount = getVisibleCount();
-
-  function getVisibleCount() {
-    if (window.innerWidth <= 768) return 1;
-    if (window.innerWidth <= 1024) return 3;
-    return 4;
+    animateEls.forEach(el => scrollObserver.observe(el));
   }
 
-  // Filter
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('filter-btn--active'));
-      btn.classList.add('filter-btn--active');
+  /* =====================================================
+     5. パララックス効果 – [data-parallax] 要素
+  ===================================================== */
+  const parallaxEls = $$('[data-parallax]');
 
-      const filter = btn.dataset.filter;
+  // モバイルはパララックス無効（パフォーマンス考慮）
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = () => window.innerWidth < 768;
 
-      workCards.forEach(card => {
-        const category = card.dataset.category;
-        if (filter === 'all' || category === filter) {
-          card.classList.remove('is-hidden');
-          card.style.opacity = '0';
-          card.style.transform = 'translateY(20px)';
-          setTimeout(() => {
-            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-          }, 50);
-        } else {
-          card.classList.add('is-hidden');
-        }
-      });
+  let parallaxRAF = null;
 
-      currentIndex = 0;
-      updateSlider();
+  function updateParallax() {
+    if (isMobile() || prefersReducedMotion) return;
+    const scrollY = window.scrollY;
+
+    parallaxEls.forEach(el => {
+      const speed = parseFloat(el.dataset.parallax) || 0.1;
+      const rect = el.parentElement.getBoundingClientRect();
+      const centerOffset = rect.top + rect.height / 2 - window.innerHeight / 2;
+      const move = centerOffset * speed;
+      el.style.transform = `translate3d(0, ${move}px, 0)`;
     });
-  });
 
-  // Slider dots
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => {
-      currentIndex = i;
-      updateSlider();
-    });
-  });
-
-  function updateSlider() {
-    const cardWidth = track.querySelector('.work-card').offsetWidth + 24;
-    const vc = getVisibleCount();
-    const maxIndex = Math.max(0, workCards.length - vc);
-    const clampedIndex = Math.min(currentIndex, maxIndex);
-    track.style.transform = `translateX(-${clampedIndex * cardWidth}px)`;
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('works__dot--active', i === currentIndex);
-    });
+    parallaxRAF = null;
   }
 
-  // Auto slide
-  let autoSlide = setInterval(() => {
-    const vc = getVisibleCount();
-    const maxIndex = Math.max(0, workCards.length - vc);
-    currentIndex = currentIndex >= maxIndex ? 0 : currentIndex + 1;
-    updateSlider();
-  }, 4000);
-
-  track.parentElement.addEventListener('mouseenter', () => clearInterval(autoSlide));
-  track.parentElement.addEventListener('mouseleave', () => {
-    autoSlide = setInterval(() => {
-      const vc = getVisibleCount();
-      const maxIndex = Math.max(0, workCards.length - vc);
-      currentIndex = currentIndex >= maxIndex ? 0 : currentIndex + 1;
-      updateSlider();
-    }, 4000);
-  });
-
-  // Touch / swipe
-  let startX = 0;
-  track.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-  }, { passive: true });
-
-  track.addEventListener('touchend', e => {
-    const diff = startX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      const vc = getVisibleCount();
-      const maxIndex = Math.max(0, workCards.length - vc);
-      if (diff > 0) {
-        currentIndex = Math.min(currentIndex + 1, maxIndex);
-      } else {
-        currentIndex = Math.max(currentIndex - 1, 0);
-      }
-      updateSlider();
+  window.addEventListener('scroll', () => {
+    if (!parallaxRAF && !isMobile() && !prefersReducedMotion) {
+      parallaxRAF = requestAnimationFrame(updateParallax);
     }
   }, { passive: true });
 
-  window.addEventListener('resize', () => {
-    currentIndex = 0;
-    updateSlider();
-  });
-}
+  /* =====================================================
+     6. カウンターアニメーション
+  ===================================================== */
+  const counters = $$('.counter');
 
-/* =============================================
-   CONTACT FORM
-============================================= */
-function initContactForm() {
-  const form = document.getElementById('contactForm');
-  if (!form) return;
+  if (counters.length > 0) {
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.dataset.target, 10);
+        const duration = 2000;
+        const start = performance.now();
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const value = Math.floor(easeOut(progress) * target);
+          el.textContent = value.toLocaleString('ja-JP');
+          if (progress < 1) requestAnimationFrame(tick);
+          else el.textContent = target.toLocaleString('ja-JP');
+        }
 
-    const submitBtn = form.querySelector('.btn--submit');
-    submitBtn.textContent = '送信中...';
-    submitBtn.disabled = true;
+        requestAnimationFrame(tick);
+        counterObserver.unobserve(el);
+      });
+    }, { threshold: 0.5 });
 
-    setTimeout(() => {
-      form.innerHTML = `
-        <div class="form-success is-active">
-          <div class="form-success__icon">✓</div>
-          <p class="form-success__title">送信が完了しました！</p>
-          <p class="form-success__text">3営業日以内にご返信いたします。<br>お気軽にお待ちください。</p>
-        </div>
-      `;
-    }, 1200);
-  });
-}
+    counters.forEach(el => counterObserver.observe(el));
+  }
 
-/* =============================================
-   SMOOTH SCROLL FOR ANCHOR LINKS
-============================================= */
-function initSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const href = this.getAttribute('href');
+  /* =====================================================
+     7. スキルバーアニメーション（skills.html）
+  ===================================================== */
+  const skillBars = $$('.skill-bar-fill');
+
+  if (skillBars.length > 0) {
+    const skillObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const bar = entry.target;
+        const pct = bar.dataset.pct || '0';
+        setTimeout(() => {
+          bar.style.width = pct + '%';
+        }, parseInt(bar.dataset.delay || 0));
+        skillObserver.unobserve(bar);
+      });
+    }, { threshold: 0.3 });
+
+    skillBars.forEach(bar => skillObserver.observe(bar));
+  }
+
+  /* =====================================================
+     8. ホバーマイクロインタラクション
+  ===================================================== */
+
+  /** マグネットボタン効果（primaryボタン） */
+  function initMagneticButtons() {
+    $$('.btn-primary').forEach(btn => {
+      btn.addEventListener('mousemove', e => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15 - 2}px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+      });
+    });
+  }
+  if (!isMobile()) initMagneticButtons();
+
+  /** カードリップルエフェクト */
+  function initRipple() {
+    $$('.what-card, .numbers-card, .works-card').forEach(card => {
+      card.addEventListener('click', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-effect';
+        ripple.style.cssText = `
+          position:absolute; border-radius:50%;
+          width:200px; height:200px;
+          left:${x - 100}px; top:${y - 100}px;
+          background:rgba(91,156,246,.12);
+          transform:scale(0); pointer-events:none;
+          animation:ripple .6s ease-out forwards;
+        `;
+        card.style.position = 'relative';
+        card.style.overflow = 'hidden';
+        card.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+  }
+
+  // Rippleキーフレームをインジェクト
+  const rippleStyle = document.createElement('style');
+  rippleStyle.textContent = '@keyframes ripple{to{transform:scale(3);opacity:0}}';
+  document.head.appendChild(rippleStyle);
+  initRipple();
+
+  /* =====================================================
+     9. WORKSページ タブフィルター（高品質実装）
+     – pickup-item と works-card 両方を対象に
+     – フェードアウト → display切替 → スタガーフェードイン
+  ===================================================== */
+  const filterTabs = $$('.filter-tab');
+
+  if (filterTabs.length > 0 && document.body.classList.contains('page-works')) {
+    // フィルター対象: pickupアイテム + gridカード すべて
+    const filterTargets = $$('[data-category]');
+    const pickupSection = $('#pickupSection');
+    let currentFilter  = 'all';
+    let isAnimating    = false;
+
+    /**
+     * メインフィルター関数
+     * Phase1: 全ターゲットをフェードアウト (220ms)
+     * Phase2: display切替 → スタガーでフェードイン
+     */
+    function applyFilter(filter) {
+      if (isAnimating || filter === currentFilter) return;
+      isAnimating    = true;
+      currentFilter  = filter;
+
+      // ── アクティブタブ更新 ──
+      filterTabs.forEach(t => {
+        t.classList.toggle('active', t.dataset.filter === filter);
+        t.setAttribute('aria-selected', t.dataset.filter === filter ? 'true' : 'false');
+      });
+
+      // ── Phase 1: 全ターゲット フェードアウト ──
+      filterTargets.forEach(el => {
+        el.style.transition   = 'opacity .2s ease, transform .22s ease';
+        el.style.opacity      = '0';
+        el.style.transform    = 'scale(0.88) translateY(10px)';
+        el.style.pointerEvents= 'none';
+      });
+
+      // ── Phase 2: フェードアウト後 ──
+      setTimeout(() => {
+
+        // display切替
+        filterTargets.forEach(el => {
+          const match = filter === 'all' || el.dataset.category === filter;
+          el.style.display = match ? '' : 'none';
+        });
+
+        // ピックアップセクション全体の表示制御
+        if (pickupSection) {
+          const anyPickup = $$('.pickup-item', pickupSection)
+            .some(el => el.style.display !== 'none');
+          pickupSection.style.display = anyPickup ? '' : 'none';
+        }
+
+        // ── Phase 3: 表示ターゲットをスタガーでフェードイン ──
+        const visible = filterTargets.filter(el => el.style.display !== 'none');
+        visible.forEach((el, i) => {
+          el.style.transition = 'none';
+          el.style.opacity    = '0';
+          el.style.transform  = 'scale(0.9) translateY(18px)';
+
+          setTimeout(() => {
+            el.style.transition   = `opacity .4s ease, transform .45s cubic-bezier(.34,1.15,.64,1)`;
+            el.style.opacity      = '1';
+            el.style.transform    = '';
+            el.style.pointerEvents= '';
+          }, i * 55);
+        });
+
+        // アニメーション終了フラグ
+        const totalTime = 250 + visible.length * 55;
+        setTimeout(() => { isAnimating = false; }, totalTime);
+
+      }, 240);
+    }
+
+    // タブクリックイベント
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => applyFilter(tab.dataset.filter));
+    });
+
+    // キーボードナビゲーション
+    filterTabs.forEach((tab, i) => {
+      tab.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' && filterTabs[i + 1]) {
+          filterTabs[i + 1].focus();
+          applyFilter(filterTabs[i + 1].dataset.filter);
+        }
+        if (e.key === 'ArrowLeft' && filterTabs[i - 1]) {
+          filterTabs[i - 1].focus();
+          applyFilter(filterTabs[i - 1].dataset.filter);
+        }
+      });
+    });
+  }
+
+  /* =====================================================
+     10. スムーズスクロール（アンカーリンク）
+  ===================================================== */
+  $$('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      const href = link.getAttribute('href');
       if (href === '#') return;
       const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        const headerH = document.getElementById('header').offsetHeight;
-        const targetY = target.getBoundingClientRect().top + window.scrollY - headerH;
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-      }
+      if (!target) return;
+
+      e.preventDefault();
+      const headerOffset = 80;
+      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+      window.scrollTo({ top, behavior: 'smooth' });
     });
   });
-}
 
-/* =============================================
-   PARALLAX EFFECT ON HERO BLOBS
-============================================= */
-function initParallax() {
-  const blobs = document.querySelectorAll('.hero__blob, .about__blob');
+  /* =====================================================
+     11. ページトップへスクロール時のヒーロー演出
+  ===================================================== */
+  // ヒーローのコンテンツがロード直後に表示されるよう促す
+  window.addEventListener('load', () => {
+    document.body.classList.add('loaded');
 
-  window.addEventListener('scroll', () => {
-    const scrollY = window.scrollY;
-    blobs.forEach((blob, i) => {
-      const speed = i % 2 === 0 ? 0.15 : 0.1;
-      blob.style.transform = `translateY(${scrollY * speed}px)`;
-    });
-  }, { passive: true });
-}
-
-/* =============================================
-   CODE EDITOR TYPEWRITER EFFECT
-============================================= */
-function initCodeTypewriter() {
-  const codeLines = document.querySelectorAll('.code-editor .code-line');
-  
-  const heroSection = document.getElementById('hero');
-  const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      let delay = 800;
-      codeLines.forEach(line => {
-        line.style.opacity = '0';
-        setTimeout(() => {
-          line.style.transition = 'opacity 0.3s ease';
-          line.style.opacity = '1';
-        }, delay);
-        delay += 200;
-      });
-      observer.unobserve(heroSection);
+    // ヒーロー要素を少し遅れてアニメーション
+    const heroContent = $('.hero-content');
+    const heroVisual  = $('.hero-visual');
+    if (heroContent) {
+      setTimeout(() => {
+        heroContent.classList.add('is-visible');
+      }, 200);
     }
-  }, { threshold: 0.3 });
-
-  observer.observe(heroSection);
-}
-
-/* =============================================
-   CURSOR TRAIL EFFECT (subtle)
-============================================= */
-function initCursorTrail() {
-  if (window.matchMedia('(pointer: coarse)').matches) return;
-
-  const trail = document.createElement('div');
-  trail.style.cssText = `
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    background: rgba(99, 102, 241, 0.4);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transition: transform 0.1s ease;
-    mix-blend-mode: multiply;
-  `;
-  document.body.appendChild(trail);
-
-  let mouseX = 0, mouseY = 0;
-  let trailX = 0, trailY = 0;
-
-  document.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    if (heroVisual) {
+      setTimeout(() => {
+        heroVisual.classList.add('is-visible');
+      }, 450);
+    }
   });
 
-  function animateTrail() {
-    trailX += (mouseX - trailX) * 0.15;
-    trailY += (mouseY - trailY) * 0.15;
-    trail.style.left = `${trailX - 4}px`;
-    trail.style.top = `${trailY - 4}px`;
-    requestAnimationFrame(animateTrail);
+  /* =====================================================
+     12. カーソルカスタム（デスクトップのみ）
+  ===================================================== */
+  if (!isMobile() && !prefersReducedMotion) {
+    // ホバー可能な要素でカーソルが大きくなる控えめなエフェクト
+    const interactiveEls = $$('a, button, .what-card, .numbers-card, .works-card, .process-step');
+    interactiveEls.forEach(el => {
+      el.addEventListener('mouseenter', () => el.style.cursor = 'pointer');
+    });
   }
 
-  animateTrail();
-}
+  /* =====================================================
+     13. ページ遷移フェード（オプション）
+  ===================================================== */
+  document.querySelectorAll('a[href]:not([href^="#"]):not([href^="mailto"]):not([href^="tel"])').forEach(link => {
+    link.addEventListener('click', e => {
+      const href = link.getAttribute('href');
+      // 外部リンクは除外
+      if (href.startsWith('http') || href.startsWith('//')) return;
+      // ページ内リンクは除外
+      if (link.hostname !== window.location.hostname) return;
 
-/* =============================================
-   SECTION NUMBER COUNT-UP ANIMATION
-============================================= */
-function initSectionNumbers() {
-  const numbers = document.querySelectorAll('.section__number');
+      e.preventDefault();
+      document.body.style.transition = 'opacity .3s ease';
+      document.body.style.opacity = '0';
+      setTimeout(() => { window.location.href = href; }, 300);
+    });
+  });
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.animation = 'numberAppear 0.8s ease both';
-        observer.unobserve(entry.target);
+  // ページロード時にフェードイン
+  document.body.style.opacity = '0';
+  document.body.style.transition = 'opacity .4s ease';
+  requestAnimationFrame(() => {
+    document.body.style.opacity = '1';
+  });
+
+  /* =====================================================
+     14. コードウィンドウ タイピングエフェクト（TOPページ）
+  ===================================================== */
+  const codeLines = $$('.code-win-body .code-line');
+  if (codeLines.length > 0 && document.body.classList.contains('page-top')) {
+    codeLines.forEach((line, i) => {
+      line.style.opacity = '0';
+      line.style.transition = 'none';
+    });
+
+    setTimeout(() => {
+      codeLines.forEach((line, i) => {
+        setTimeout(() => {
+          line.style.transition = 'opacity .3s ease';
+          line.style.opacity = '1';
+        }, i * 200 + 600);
+      });
+    }, 800);
+  }
+
+  /* =====================================================
+     15. スクロール連動ヒーロー背景
+  ===================================================== */
+  const hero = $('.hero');
+  if (hero) {
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      if (scrollY < window.innerHeight) {
+        // Hero自体を少しフェードアウト
+        const opacity = Math.max(0, 1 - scrollY / (window.innerHeight * 0.6));
+        const scale   = 1 - scrollY / (window.innerHeight * 15);
+        const heroInner = $('.hero-inner', hero);
+        if (heroInner) {
+          heroInner.style.opacity    = opacity;
+          heroInner.style.transform  = `scale(${scale})`;
+        }
       }
-    });
-  }, { threshold: 0.1 });
+    }, { passive: true });
+  }
 
-  // Add keyframe dynamically
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes numberAppear {
-      from { opacity: 0; transform: translateX(-50%) scale(0.8); }
-      to { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  /* =====================================================
+     16. ABOUTページ専用インタラクション
+  ===================================================== */
+  /* =====================================================
+     16. WORKSページ専用 マイクロインタラクション
+  ===================================================== */
+  if (document.body.classList.contains('page-works')) {
+
+    /* ---- 16-a. ピックアップカード 3D チルト効果 ---- */
+    if (!isMobile() && !prefersReducedMotion) {
+      $$('.pickup-item-img-wrap').forEach(wrap => {
+        const parent = wrap.closest('.pickup-item');
+        if (!parent) return;
+
+        parent.addEventListener('mousemove', e => {
+          const rect   = wrap.getBoundingClientRect();
+          const cx     = rect.left + rect.width  / 2;
+          const cy     = rect.top  + rect.height / 2;
+          const dx     = (e.clientX - cx) / (rect.width  / 2);  // -1 ~ 1
+          const dy     = (e.clientY - cy) / (rect.height / 2);
+          const rotX   =  dy * 4;   // 傾き上下
+          const rotY   = -dx * 6;   // 傾き左右
+          const scale  = 1.03;
+
+          wrap.style.transition = 'transform .08s ease';
+          wrap.style.transform  =
+            `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale}) translateY(-4px)`;
+        });
+
+        parent.addEventListener('mouseleave', () => {
+          wrap.style.transition = 'transform .45s cubic-bezier(.34,1.2,.64,1)';
+          wrap.style.transform  = '';
+        });
+      });
     }
+
+    /* ---- 16-b. worksカード カーソルグロー ---- */
+    if (!isMobile() && !prefersReducedMotion) {
+      $$('.works-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--gx', x + 'px');
+          card.style.setProperty('--gy', y + 'px');
+        });
+      });
+
+      // グロー用スタイルを注入
+      const glowStyle = document.createElement('style');
+      glowStyle.textContent = `
+        .works-card::before {
+          content:''; position:absolute; inset:0;
+          background: radial-gradient(120px circle at var(--gx,50%) var(--gy,50%),
+            rgba(91,156,246,.1), transparent 70%);
+          opacity:0; transition:opacity .3s ease; border-radius:inherit; z-index:0;
+          pointer-events:none;
+        }
+        .works-card:hover::before { opacity:1; }
+      `;
+      document.head.appendChild(glowStyle);
+    }
+
+    /* ---- 16-c. works-card ステータス line トップ装飾 ---- */
+    $$('.works-card').forEach(card => {
+      const line = document.createElement('div');
+      line.className = 'works-card-line';
+      line.style.cssText = `
+        position:absolute; top:0; left:0; right:0; height:3px;
+        background: linear-gradient(90deg,#5b9cf6,#8b7fd4);
+        transform:scaleX(0); transform-origin:left;
+        transition:transform .35s ease; border-radius:inherit; z-index:2;
+      `;
+      card.appendChild(line);
+
+      card.addEventListener('mouseenter', () => { line.style.transform = 'scaleX(1)'; });
+      card.addEventListener('mouseleave', () => { line.style.transform = 'scaleX(0)'; });
+    });
+
+    /* ---- 16-d. スクロールプログレスバー ---- */
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    document.body.appendChild(progressBar);
+    window.addEventListener('scroll', () => {
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = (docH > 0 ? window.scrollY / docH * 100 : 0) + '%';
+    }, { passive: true });
+
+    /* ---- 16-e. tech-badge ランダム浮遊 ---- */
+    if (!prefersReducedMotion) {
+      $$('.tech-badge').forEach((badge, i) => {
+        badge.style.animationDelay = (i * 180) + 'ms';
+        badge.addEventListener('mouseenter', () => {
+          badge.style.transform = `translateY(-3px) scale(1.08)`;
+          badge.style.transition= 'transform .25s cubic-bezier(.34,1.56,.64,1)';
+        });
+        badge.addEventListener('mouseleave', () => {
+          badge.style.transform = '';
+        });
+      });
+    }
+
+  } // end page-works
+
+  /* =====================================================
+     17. ABOUTページ専用インタラクション
+  ===================================================== */
+  if (document.body.classList.contains('page-about')) {
+
+    /* ---- 16-a. プロフィール行 – 視差フェードイン ---- */
+    const profileRows = $$('.profile-row');
+    if (profileRows.length > 0) {
+      const profileObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const card = entry.target;
+          $$('.profile-row', card).forEach((row, i) => {
+            row.style.opacity    = '0';
+            row.style.transform  = 'translateX(20px)';
+            row.style.transition = `opacity .4s ease ${i * 60}ms, transform .4s ease ${i * 60}ms`;
+            requestAnimationFrame(() => {
+              row.style.opacity   = '1';
+              row.style.transform = 'none';
+            });
+          });
+          profileObserver.unobserve(card);
+        });
+      }, { threshold: 0.2 });
+
+      const profileCard = $('.profile-card');
+      if (profileCard) profileObserver.observe(profileCard);
+    }
+
+    /* ---- 16-b. タイムライン – ドット点灯アニメーション ---- */
+    const tlItems = $$('.tl-item');
+    if (tlItems.length > 0) {
+      const tlObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const item = entry.target;
+          const dot  = $('.tl-dot', item);
+          if (dot) {
+            dot.style.transform = 'scale(0)';
+            dot.style.transition = 'transform .5s cubic-bezier(.34,1.56,.64,1)';
+            setTimeout(() => { dot.style.transform = 'scale(1)'; }, 100);
+          }
+          tlObserver.unobserve(item);
+        });
+      }, { threshold: 0.4 });
+
+      tlItems.forEach(item => tlObserver.observe(item));
+    }
+
+    /* ---- 16-c. 趣味カード – 画像エリアにホバー時ラベルオーバーレイ ---- */
+    $$('.hobby-card').forEach(card => {
+      const imgWrap = $('.hobby-img-wrap', card);
+      if (!imgWrap) return;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'hobby-overlay';
+      overlay.innerHTML = '<i class="fas fa-expand-alt"></i>';
+      imgWrap.appendChild(overlay);
+    });
+
+    /* ---- 16-d. アクセントカラーによるスクロールプログレスライン ---- */
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    document.body.appendChild(progressBar);
+
+    window.addEventListener('scroll', () => {
+      const docH   = document.documentElement.scrollHeight - window.innerHeight;
+      const pct    = docH > 0 ? (window.scrollY / docH) * 100 : 0;
+      progressBar.style.width = pct + '%';
+    }, { passive: true });
+
+    /* ---- 16-e. Bigクォートテキストのカーソル追従グロー ---- */
+    const bigQuote = $('.about-big-quote');
+    if (bigQuote && !isMobile()) {
+      bigQuote.addEventListener('mousemove', e => {
+        const rect = bigQuote.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+        const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
+        bigQuote.style.backgroundImage =
+          `radial-gradient(ellipse 120px 60px at ${x}% ${y}%, rgba(91,156,246,.06), transparent)`;
+      });
+      bigQuote.addEventListener('mouseleave', () => {
+        bigQuote.style.backgroundImage = '';
+      });
+    }
+
+  } // end page-about
+
+  /* =====================================================
+     17. SKILLS PAGE – スキルバー＆インタラクション
+  ===================================================== */
+  if (document.body.classList.contains('page-skills')) {
+
+    /* ---- 17-a. .skill-fill バーアニメーション ---- */
+    const skillFills = $$('.skill-fill');
+    if (skillFills.length > 0) {
+      const fillObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const el  = entry.target;
+          const pct = el.dataset.pct || '0';
+          const delay = parseInt(el.dataset.delay || 0);
+          setTimeout(() => { el.style.width = pct + '%'; }, delay);
+          fillObserver.unobserve(el);
+        });
+      }, { threshold: 0.25, rootMargin: '0px 0px -40px 0px' });
+
+      skillFills.forEach(el => fillObserver.observe(el));
+    }
+
+    /* ---- 17-b. スキルホイール ノード登場アニメーション ---- */
+    const swNodes = $$('.sw-node');
+    if (swNodes.length > 0) {
+      const wheelObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          swNodes.forEach((node) => {
+            const delay = parseInt(node.dataset.swDelay || 0);
+            setTimeout(() => node.classList.add('is-visible'), delay);
+          });
+          wheelObserver.disconnect();
+        });
+      }, { threshold: 0.3 });
+
+      const swContainer = $('.sw-container');
+      if (swContainer) wheelObserver.observe(swContainer);
+    }
+
+    /* ---- 17-c. スキルカラムカード ホバー時バー再アニメ防止 ---- */
+    // 既にアニメーション済みのバーが二重にリセットされないようにフラグ管理
+    $$('.skill-col-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.querySelectorAll('.skill-fill').forEach(fill => {
+          const currentW = fill.style.width;
+          if (currentW && currentW !== '0%') {
+            fill.style.transition = 'none';
+            // マウスリーブ後にtransitionを戻す
+          }
+        });
+      });
+      card.addEventListener('mouseleave', () => {
+        card.querySelectorAll('.skill-fill').forEach(fill => {
+          fill.style.transition = '';
+        });
+      });
+    });
+
+    /* ---- 17-d. 資格アイテム ホバーリップル ---- */
+    $$('.cert-item').forEach(item => {
+      item.addEventListener('click', e => {
+        const ripple = document.createElement('span');
+        const rect   = item.getBoundingClientRect();
+        ripple.style.cssText = `
+          position:absolute; pointer-events:none; border-radius:50%;
+          width:6px; height:6px;
+          background:rgba(91,156,246,.35);
+          top:${e.clientY - rect.top - 3}px; left:${e.clientX - rect.left - 3}px;
+          transform:scale(0); opacity:1;
+          transition:transform .6s ease, opacity .5s ease .15s;
+        `;
+        item.style.position = 'relative';
+        item.style.overflow  = 'hidden';
+        item.appendChild(ripple);
+        requestAnimationFrame(() => {
+          ripple.style.transform = 'scale(80)';
+          ripple.style.opacity   = '0';
+        });
+        setTimeout(() => ripple.remove(), 700);
+      });
+    });
+
+    /* ---- 17-e. スクロール進捗バー (SKILLS ページ用) ---- */
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    document.body.prepend(progressBar);
+    window.addEventListener('scroll', () => {
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      const pct  = docH > 0 ? (window.scrollY / docH) * 100 : 0;
+      progressBar.style.width = pct + '%';
+    }, { passive: true });
+
+    /* ---- 17-f. スキルホイール ノード – マウス追従微動 ---- */
+    const swWrap = $('.skills-wheel-wrap');
+    if (swWrap && !isMobile()) {
+      swWrap.addEventListener('mousemove', e => {
+        const rect = swWrap.getBoundingClientRect();
+        const mx   = (e.clientX - rect.left - rect.width  / 2) / rect.width;
+        const my   = (e.clientY - rect.top  - rect.height / 2) / rect.height;
+        swNodes.forEach(node => {
+          const factor = parseFloat(node.dataset.swDelay || 0) / 400 * 6;
+          node.style.transform = node.style.transform.replace(/translate3d\([^)]+\)/, '');
+          const base = node.classList.contains('sw-node-top')    ? 'translate(-50%, 0)' :
+                       node.classList.contains('sw-node-bottom') ? 'translate(-50%, 0)' :
+                       node.classList.contains('sw-node-left')   ? 'translate(0, -50%)' : '';
+          node.style.transform = `${base} translate(${mx * factor}px, ${my * factor}px) scale(1)`;
+        });
+      });
+      swWrap.addEventListener('mouseleave', () => {
+        swNodes.forEach(node => {
+          const base = node.classList.contains('sw-node-top')    ? 'translate(-50%, 0) scale(1)' :
+                       node.classList.contains('sw-node-bottom') ? 'translate(-50%, 0) scale(1)' :
+                       node.classList.contains('sw-node-left')   ? 'translate(0, -50%) scale(1)'  : 'scale(1)';
+          node.style.transform = base;
+        });
+      });
+    }
+
+  } // end page-skills
+
+  /* =====================================================
+     18. SERVICE PAGE – インタラクション
+  ===================================================== */
+  if (document.body.classList.contains('page-service')) {
+
+    /* ---- 18-a. FAQ アコーディオン ---- */
+    $$('.faq-q').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isOpen   = btn.getAttribute('aria-expanded') === 'true';
+        const faqItem  = btn.closest('.faq-item');
+        const answer   = faqItem.querySelector('.faq-a');
+
+        /* 他の開いているアコーディオンを閉じる */
+        $$('.faq-item').forEach(item => {
+          const otherBtn = item.querySelector('.faq-q');
+          const otherAns = item.querySelector('.faq-a');
+          if (item !== faqItem && otherBtn.getAttribute('aria-expanded') === 'true') {
+            otherBtn.setAttribute('aria-expanded', 'false');
+            otherAns.removeAttribute('hidden');
+            requestAnimationFrame(() => {
+              otherAns.style.maxHeight = '0px';
+              otherAns.style.paddingBottom = '0';
+            });
+            setTimeout(() => otherAns.setAttribute('hidden', ''), 450);
+          }
+        });
+
+        if (isOpen) {
+          btn.setAttribute('aria-expanded', 'false');
+          answer.style.maxHeight = '0px';
+          setTimeout(() => answer.setAttribute('hidden', ''), 450);
+        } else {
+          btn.setAttribute('aria-expanded', 'true');
+          answer.removeAttribute('hidden');
+          requestAnimationFrame(() => {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+          });
+        }
+      });
+    });
+
+    /* ---- 18-b. 制作フロー ステップ順次登場 ---- */
+    const flowSteps = $$('.flow-step');
+    if (flowSteps.length > 0) {
+      const flowObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          flowSteps.forEach((step, i) => {
+            setTimeout(() => step.classList.add('is-visible'), i * 110);
+          });
+          flowObserver.disconnect();
+        });
+      }, { threshold: 0.2 });
+
+      const flowTrack = $('.flow-track');
+      if (flowTrack) flowObserver.observe(flowTrack);
+    }
+
+    /* ---- 18-c. 料金カード 3Dチルト ---- */
+    if (!isMobile()) {
+      $$('.pricing-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const rect   = card.getBoundingClientRect();
+          const cx     = rect.left + rect.width  / 2;
+          const cy     = rect.top  + rect.height / 2;
+          const dx     = (e.clientX - cx) / (rect.width  / 2);
+          const dy     = (e.clientY - cy) / (rect.height / 2);
+          const rotX   = -dy * 5;
+          const rotY   =  dx * 5;
+          card.style.transform      = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-8px)`;
+          card.style.transition     = 'box-shadow .2s';
+          card.style.boxShadow      = `${-dx * 12}px ${-dy * 12}px 40px rgba(91,156,246,.18)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          const isPopular = card.classList.contains('pricing-card-popular');
+          card.style.transform  = isPopular ? 'translateY(-16px)' : '';
+          card.style.transition = 'transform .5s cubic-bezier(.25,.8,.25,1), box-shadow .5s';
+          card.style.boxShadow  = '';
+        });
+      });
+    }
+
+    /* ---- 18-d. サービスカード カーソルグロー ---- */
+    $$('.svc-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x    = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+        const y    = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
+        card.style.backgroundImage =
+          `radial-gradient(circle 200px at ${x}% ${y}%, rgba(91,156,246,.06), transparent)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.backgroundImage = '';
+      });
+    });
+
+    /* ---- 18-e. スクロール進捗バー (SERVICE ページ用) ---- */
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    document.body.prepend(progressBar);
+    window.addEventListener('scroll', () => {
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = (docH > 0 ? window.scrollY / docH * 100 : 0) + '%';
+    }, { passive: true });
+
+    /* ---- 18-f. 浮遊サービスカードアイコン hover micro-scale ---- */
+    $$('.shc-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = card.style.transform.includes('translate')
+          ? card.style.transform.replace(/scale\([^)]+\)/, '') + ' scale(1.08)'
+          : card.style.transform + ' scale(1.08)';
+        card.style.boxShadow = '0 12px 36px rgba(0,0,0,.14)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = card.style.transform.replace(/\s*scale\([^)]+\)/, '');
+        card.style.boxShadow = '';
+      });
+    });
+
+    /* ---- 18-g. 料金カード ナンバーカウントアップ ---- */
+    const priceNums = $$('.price-num');
+    if (priceNums.length > 0) {
+      const priceObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const el      = entry.target;
+          const target  = parseInt(el.textContent.replace(/,/g, ''), 10);
+          const dur     = 1200;
+          const start   = performance.now();
+          const tick    = (now) => {
+            const t   = Math.min((now - start) / dur, 1);
+            const val = Math.round(easeOut(t) * target);
+            el.textContent = val.toLocaleString('ja-JP');
+            if (t < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+          priceObserver.unobserve(el);
+        });
+      }, { threshold: 0.5 });
+
+      priceNums.forEach(el => priceObserver.observe(el));
+    }
+
+  } // end page-service
+
+})();
+
+
+/* =====================================================
+   スクロールプログレスバー CSS (JS インジェクト)
+===================================================== */
+(function injectStyles() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0;
+      background: linear-gradient(90deg, #5b9cf6, #8b7fd4);
+      z-index: 9999;
+      transition: width .1s linear;
+      pointer-events: none;
+    }
+    .hobby-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(26,26,46,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+    .hobby-card:hover .hobby-overlay { opacity: 1; }
   `;
-  document.head.appendChild(style);
-
-  numbers.forEach(n => observer.observe(n));
-}
-
-/* =============================================
-   MAGNETIC BUTTON EFFECT
-============================================= */
-function initMagneticButtons() {
-  if (window.matchMedia('(pointer: coarse)').matches) return;
-
-  const buttons = document.querySelectorAll('.btn, .social-link');
-
-  buttons.forEach(btn => {
-    btn.addEventListener('mousemove', e => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = '';
-    });
-  });
-}
-
-/* =============================================
-   SCROLL PROGRESS BAR
-============================================= */
-function initScrollProgress() {
-  const bar = document.createElement('div');
-  bar.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-    z-index: 200;
-    transform-origin: left;
-    transform: scaleX(0);
-    transition: transform 0.1s ease;
-    pointer-events: none;
-  `;
-  document.body.appendChild(bar);
-
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = scrollTop / docHeight;
-    bar.style.transform = `scaleX(${progress})`;
-  }, { passive: true });
-}
-
-/* =============================================
-   ABOUT CARD HOVER TILT
-============================================= */
-function initCardTilt() {
-  if (window.matchMedia('(pointer: coarse)').matches) return;
-
-  const cards = document.querySelectorAll('.about__card, .service__card');
-
-  cards.forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `translateY(-4px) perspective(600px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`;
-    });
-
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
-}
-
-/* =============================================
-   INIT ALL
-============================================= */
-document.addEventListener('DOMContentLoaded', () => {
-  initLoader();
-  initHeader();
-  initMobileNav();
-  initActiveNav();
-  initScrollAnimations();
-  initSectionLines();
-  initWorks();
-  initContactForm();
-  initSmoothScroll();
-  initParallax();
-  initCodeTypewriter();
-  initCursorTrail();
-  initSectionNumbers();
-  initMagneticButtons();
-  initScrollProgress();
-  initCardTilt();
-});
+  document.head.appendChild(s);
+})();
